@@ -30,7 +30,8 @@ class Openmc(SpackApplication):
 
     required_package('openmc')
 
-    workload('standard', executables=['set-cross-sections','execute'], inputs=['benchmark', 'cross_sections'])
+    workload('progression', executables=['set-cross-sections','execute'], inputs=['benchmark', 'cross_sections'])
+    workload('tally', executables=['set-cross-sections','execute'], inputs=['benchmark', 'cross_sections'])
 
     # Get the benchmark repo
     input_file('benchmark',
@@ -44,12 +45,17 @@ class Openmc(SpackApplication):
                url='https://anl.box.com/shared/static/9igk353zpy8fn9ttvtrqgzvw1vtejoz6.xz',
                description='Cross section library input for OpenMC')
 
+    if Expander.expansion_str('workload_name') == 'progression':
+        input_dir = '{workload_input_dir}/benchmark/progression_tests/XXL/'
+    else:
+        input_dir = '{workload_input_dir}/benchmark/tally_tests/HM_large_tally/'
+
     # We have to use a relative path because of the fixed string length for the cross section file
     executable('set-cross-sections',
-               template=["sed -i -e 's~<materials>~<materials>\\n<cross_sections>../../../../inputs/openmc/standard/cross_sections/cross_sections.xml</cross_sections>~g' -i {workload_input_dir}/benchmark/progression_tests/small/materials.xml"],
+               template=["sed -i -e 's~<materials>~<materials>\\n<cross_sections>../../../../inputs/openmc/{workload_name}/cross_sections/cross_sections.xml</cross_sections>~g' -i " + input_dir + "materials.xml"],
                use_mpi=False)
 
-    executable('execute', 'openmc {workload_input_dir}/benchmark/progression_tests/small', use_mpi=True)
+    executable('execute', 'openmc ' + input_dir, use_mpi=True)
 
     figure_of_merit('Simulation Time', log_file='{experiment_run_dir}/{experiment_name}.out',
                     fom_regex=r'\s*Total time in simulation\s*=\s*(?P<solve_time>.*)',

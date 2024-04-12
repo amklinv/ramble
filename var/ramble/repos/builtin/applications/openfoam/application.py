@@ -58,6 +58,9 @@ class Openfoam(SpackApplication):
     workload_variable('hex_mesh_path', default='system/snappyHexMeshDict',
                       description='Path to hexh mesh file',
                       workloads=['hpc_motorbike', 'motorbike'])
+    workload_variable('mesh_quality_path', default='system/meshQualityDict',
+                      description='Path to mesh quality file',
+                      workloads=['hpc_motorbike', 'motorbike'])
 
     workload_variable('end_time', default='250',
                       description='End time for simulation',
@@ -128,6 +131,8 @@ class Openfoam(SpackApplication):
 
     executable('build_mesh', template=['cp -R {input_path}/* {experiment_run_dir}/.',
                                        r'sed "/^numberOfSubdomains/ c\\numberOfSubdomains {n_ranks};" -i {decomposition_path}',
+                                       r'sed "s/caseDicts\/meshQualityDict/caseDicts\/mesh\/generation\/meshQualityDict/" -i {mesh_quality_path}',
+                                       r'sed "s/type box/type searchableBox/" -i {hex_mesh_path}',
                                        'chmod a+x All*',
                                        'mv Allmesh* Allmesh',
                                        './Allmesh'],
@@ -191,6 +196,7 @@ class Openfoam(SpackApplication):
                redirect='{experiment_run_dir}/log.renumberMesh')
 
     executable('allRun', template=[r'sed "s/writephi/writePhi/g" -i Allrun',
+                                   r'sed "s/runApplication decomposePar/runApplication decomposePar -force/g" -i Allrun',
                                    r'sed "s/rm.*log./#/g" -i Allclean',
                                    r'chmod a+x Allrun',
                                    './Allrun'],

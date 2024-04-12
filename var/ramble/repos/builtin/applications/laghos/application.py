@@ -48,7 +48,11 @@ class Laghos(SpackApplication):
                       description='Number of times to refine the mesh uniformly in parallel',
                       workloads=['standard'])
 
-    executable('execute', 'laghos -dim {dimension} -m {mesh} -rs {rs} -rp {rp}', use_mpi=True)
+    workload_variable('device', default='cpu',
+                      description='Device configuration string',
+                      workloads=['standard'])
+
+    executable('execute', 'laghos -dim {dimension} -m {mesh} -rs {rs} -rp {rp} -d {device}', use_mpi=True)
 
     figure_of_merit('Solve Time', log_file='{experiment_run_dir}/{experiment_name}.out',
                     fom_regex=r'Major kernels total time \(seconds\): (?P<solve_time>.*)',

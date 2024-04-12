@@ -38,11 +38,15 @@ class Snap(SpackApplication):
                          "sed -i -e 's/  npey=.*/  npey={npey}/g' -i input.txt",
                          "sed -i -e 's/  npez=.*/  npez={npez}/g' -i input.txt"],
                use_mpi=False)
-    executable('execute', 'gsnap input.txt output.txt', use_mpi=True)
+    executable('execute', '{exe_name} input.txt output.txt', use_mpi=True)
 
     # The output file name seems to be truncated to 64 characters by SNAP
     # This gets around that limitation
     executable('copy-output', 'cp output.txt {out_file}', use_mpi=False)
+
+    workload_variable('exe_name', default='gsnap',
+                      description='Name of the SNAP executable',
+                      workloads=['standard'])
 
     workload_variable('in_file', default='{snap}/qasnap/benchmark/inp',
                       description='Input file for results',
